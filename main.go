@@ -1,21 +1,28 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/tafhdytllah/customer-list/config"
+	"github.com/tafhdytllah/customer-list/router"
 )
 
-func YourHandler(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("Gorilla!\n"))
-}
-
 func main() {
-	r := mux.NewRouter()
-	// Routes consist of a path and a handler function.
-	r.HandleFunc("/", YourHandler)
 
-	// Bind to a port and pass our router in
-	log.Fatal(http.ListenAndServe("localhost:8000", r))
+	config.InitConfig()
+	config.InitDB()
+
+	r := mux.NewRouter()
+
+	apiV1 := r.PathPrefix("/api/v1").Subrouter()
+	router.CustomerRouter(apiV1)
+
+	address := config.C.ADDRESS
+	port := config.C.PORT
+
+	log.Fatal(http.ListenAndServe(fmt.Sprintf("%v:%v", address, port), r))
+
 }
