@@ -16,6 +16,8 @@ type CustomerHandler interface {
 	FindCustomerById(res http.ResponseWriter, req *http.Request)
 
 	CreateCustomer(res http.ResponseWriter, req *http.Request)
+
+	UpdateCustomerById(res http.ResponseWriter, req *http.Request)
 }
 
 type customerHandler struct {
@@ -91,6 +93,57 @@ func (h *customerHandler) CreateCustomer(res http.ResponseWriter, req *http.Requ
 
 	res.WriteHeader(http.StatusOK)
 	json.NewEncoder(res).Encode(customerRequest)
+}
+
+// UPDATE CUSTOMER BY ID
+func (h *customerHandler) UpdateCustomerById(res http.ResponseWriter, req *http.Request) {
+	res.Header().Set("Content-type", "application/json")
+
+	var customerRequest dto.CustomerRequest
+
+	err := json.NewDecoder(req.Body).Decode(&customerRequest)
+	if err != nil {
+		res.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(res).Encode(errorhandler.ServiceError{
+			Message: "Error unmarshalling the request",
+		})
+		return
+	}
+
+	vars := mux.Vars(req)
+
+	customerID, err := strconv.ParseInt(vars["customer_id"], 10, 32)
+	if err != nil {
+		res.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(res).Encode(errorhandler.ServiceError{
+			Message: "id is invalid",
+		})
+		return
+	}
+
+	err1 := h.service.Validation(&customerRequest)
+	if err1 != nil {
+		res.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(res).Encode(errorhandler.ServiceError{
+			Message: err1.Error(),
+		})
+		return
+	}
+
+	updatedCustomer, updatedFamily, err2 := h.service.UpdateCustomerById(uint(customerID), &customerRequest)
+	if err2 != nil {
+		res.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(res).Encode(errorhandler.ServiceError{
+			Message: err2.Error(),
+		})
+		return
+	}
+
+	result := convertToCustomerResponse(*updatedCustomer, *updatedFamily)
+
+	res.WriteHeader(http.StatusOK)
+	json.NewEncoder(res).Encode(result)
+
 }
 
 // CONVERT TO CUSTOMER RESPONSE

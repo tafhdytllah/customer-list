@@ -19,4 +19,5 @@ func CustomerRouter(api *mux.Router) {
 
 	r.HandleFunc("/{customer_id}", handler.FindCustomerById).Methods(http.MethodGet)
 	r.HandleFunc("/", handler.CreateCustomer).Methods(http.MethodPost)
+	r.HandleFunc("/{customer_id}", handler.UpdateCustomerById).Methods(http.MethodPut)
 }
