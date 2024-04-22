@@ -12,6 +12,12 @@ import (
 	"github.com/tafhdytllah/customer-list/service"
 )
 
+type CustomerHandler interface {
+	FindCustomerById(res http.ResponseWriter, req *http.Request)
+
+	CreateCustomer(res http.ResponseWriter, req *http.Request)
+}
+
 type customerHandler struct {
 	service service.CustomerService
 }
@@ -50,6 +56,44 @@ func (h *customerHandler) FindCustomerById(res http.ResponseWriter, req *http.Re
 	json.NewEncoder(res).Encode(result)
 }
 
+// CREATE CUSTOMER
+func (h *customerHandler) CreateCustomer(res http.ResponseWriter, req *http.Request) {
+	res.Header().Set("Content-type", "application/json")
+
+	var customerRequest dto.CustomerRequest
+
+	err := json.NewDecoder(req.Body).Decode(&customerRequest)
+	if err != nil {
+		res.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(res).Encode(errorhandler.ServiceError{
+			Message: "Error unmarshalling the request",
+		})
+		return
+	}
+
+	err1 := h.service.Validation(&customerRequest)
+	if err1 != nil {
+		res.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(res).Encode(errorhandler.ServiceError{
+			Message: err1.Error(),
+		})
+		return
+	}
+
+	err2 := h.service.CreateCustomer(&customerRequest)
+	if err2 != nil {
+		res.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(res).Encode(errorhandler.ServiceError{
+			Message: err2.Error(),
+		})
+		return
+	}
+
+	res.WriteHeader(http.StatusOK)
+	json.NewEncoder(res).Encode(customerRequest)
+}
+
+// CONVERT TO CUSTOMER RESPONSE
 func convertToCustomerResponse(customer entity.Customer, fam []entity.FamilyList) dto.CustomerResponse {
 	familyList := make([]dto.FamilyList, len(fam))
 	for i, family := range fam {

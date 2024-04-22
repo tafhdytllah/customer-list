@@ -2,7 +2,7 @@
 
 ## Get Customer
   
-- Endpoint : GET /api/cutomers/{customer_id}
+- Endpoint : GET /api/v1/customers/{customer_id}
 
 Response Body (Success) 200 :
 
@@ -38,7 +38,7 @@ Response Body (Failed) 404 :
 
 ## Create Customer
   
-- Endpoint : POST /api/cutomers/
+- Endpoint : POST /api/v1/customers/
 
 Request Body :
 
@@ -98,7 +98,7 @@ Response Body (Failed) 400 :
 
 ## Update Customer
   
-- Endpoint : PUT /api/cutomers/{customer_id}
+- Endpoint : PUT /api/v1/customers/{customer_id}
 
 Request Body :
 
@@ -167,7 +167,7 @@ Response Body (Failed) 404 :
 
 ## Delete Family Member
   
-- Endpoint : DELETE /api/cutomers/{customer_id}/{family_id}
+- Endpoint : DELETE /api/v1/customers/{customer_id}/{family_id}
 
 
 Response Body (Success) 200 :
