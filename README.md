@@ -62,8 +62,11 @@ Before you begin working on this project, ensure that your system meets the foll
     go run main.go
     ```
 9.  Application will be accessible at [http://localhost:8080](http://localhost:8080).
-   
 
+10. Running manual test :
+    - Install [Postman](https://www.postman.com/downloads/)
+    - Import file `customer-list.postman_collection.json`
+    
 ### Api Documentation
 - [Customer List](/docs/api_spec.md)
 
