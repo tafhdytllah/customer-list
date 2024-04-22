@@ -12,6 +12,10 @@ import (
 	"github.com/tafhdytllah/customer-list/service"
 )
 
+type CustomerHandler interface {
+	FindCustomerById(res http.ResponseWriter, req *http.Request)
+}
+
 type customerHandler struct {
 	service service.CustomerService
 }
