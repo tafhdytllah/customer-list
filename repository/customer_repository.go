@@ -7,6 +7,10 @@ import (
 
 type CustomerRepository interface {
 	FindCustomerById(ID uint) (entity.Customer, error)
+
+	CreateCustomer(customer *entity.Customer) (uint, error)
+
+	CreateFamilyList(familyList *[]entity.FamilyList) error
 }
 
 type customerRepository struct {
@@ -24,4 +28,18 @@ func (r *customerRepository) FindCustomerById(ID uint) (entity.Customer, error) 
 	err := r.db.Preload("FamilyList").Preload("Nationality").Where("customer.cst_id = ?", ID).First(&customer).Error
 
 	return customer, err
+}
+
+// CREATE CUSTOMER
+func (r *customerRepository) CreateCustomer(customer *entity.Customer) (uint, error) {
+	err := r.db.Create(&customer).Error
+
+	return customer.ID, err
+}
+
+// CREATE FAMILY LIST
+func (r *customerRepository) CreateFamilyList(familyList *[]entity.FamilyList) error {
+	err := r.db.Create(&familyList).Error
+
+	return err
 }

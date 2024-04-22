@@ -18,5 +18,5 @@ func CustomerRouter(api *mux.Router) {
 	r := api.PathPrefix("/customers").Subrouter()
 
 	r.HandleFunc("/{customer_id}", handler.FindCustomerById).Methods(http.MethodGet)
-
+	r.HandleFunc("/", handler.CreateCustomer).Methods(http.MethodPost)
 }
