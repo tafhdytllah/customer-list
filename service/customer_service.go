@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/tafhdytllah/customer-list/dto"
 	"github.com/tafhdytllah/customer-list/entity"
@@ -15,6 +16,14 @@ type CustomerService interface {
 	Validation(request *dto.CustomerRequest) error
 
 	CreateCustomer(request *dto.CustomerRequest) error
+
+	UpdateCustomerById(customerID uint, request *dto.CustomerRequest) (*entity.Customer, *[]entity.FamilyList, error)
+
+	CheckCustomerById(ID uint) error
+
+	CheckFamilyById(ID uint) error
+
+	DeleteFamilyByCustomerIdAndFamilyId(customerID uint, familyID uint) error
 }
 
 type customerService struct {
@@ -68,6 +77,88 @@ func (s *customerService) CreateCustomer(request *dto.CustomerRequest) error {
 
 	if err1 := s.repository.CreateFamilyList(&familyList); err1 != nil {
 		return errors.New("create family failed")
+	}
+
+	return nil
+}
+
+// UPDATE CUSTOMER BY ID
+func (s *customerService) UpdateCustomerById(customerID uint, request *dto.CustomerRequest) (*entity.Customer, *[]entity.FamilyList, error) {
+
+	customer, err := s.repository.FindCustomerById(customerID)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return &entity.Customer{}, &[]entity.FamilyList{}, errors.New("customer not found")
+		}
+
+		return &entity.Customer{}, &[]entity.FamilyList{}, errors.New(err.Error())
+	}
+
+	newName := strings.TrimSpace(request.Name)
+	newDob := strings.TrimSpace(request.Dob)
+	newNationalityId := uint(request.NationalityID)
+	newPhone := strings.TrimSpace(request.Phone)
+	newEmail := strings.TrimSpace(request.Email)
+
+	customer.CstName = newName
+	customer.CstDob = newDob
+	customer.NationalityID = newNationalityId
+	customer.CstPhone = newPhone
+	customer.CstEmail = newEmail
+
+	var familyList []entity.FamilyList
+	for _, f := range request.FamilyList {
+		familyList = append(familyList, entity.FamilyList{
+			CustomerID: customerID,
+			Relation:   f.Relation,
+			Name:       f.Name,
+			Dob:        f.Dob,
+		})
+	}
+
+	updatedCustomer, err1 := s.repository.UpdateCustomer(&customer)
+	if err1 != nil {
+		return &entity.Customer{}, &[]entity.FamilyList{}, errors.New("update customer failed")
+	}
+
+	err2 := s.repository.DeleteFamilyByCustomerId(customerID)
+	if err2 != nil {
+		return &entity.Customer{}, &[]entity.FamilyList{}, errors.New("family not found")
+	}
+
+	updatedFamily, err3 := s.repository.UpdateFamily(&familyList)
+	if err3 != nil {
+		return &entity.Customer{}, &[]entity.FamilyList{}, errors.New("update family failed")
+	}
+
+	return updatedCustomer, updatedFamily, nil
+}
+
+// CHECK CUSTOMER BY ID
+func (s *customerService) CheckCustomerById(ID uint) error {
+	err := s.repository.CheckCustomerById(ID)
+	if err != nil {
+		return errors.New("customer not found")
+	}
+
+	return nil
+}
+
+// CHECK FAMILY BY ID
+func (s *customerService) CheckFamilyById(ID uint) error {
+	err := s.repository.CheckFamilyById(ID)
+	if err != nil {
+		return errors.New("family not found")
+	}
+
+	return nil
+}
+
+// DELETE FAMILY BY CUSTOMER ID AND FAMILY ID
+func (s *customerService) DeleteFamilyByCustomerIdAndFamilyId(customerID uint, familyID uint) error {
+	err := s.repository.DeleteFamilyByCustomerIdAndFamilyId(customerID, familyID)
+	if err != nil {
+		return errors.New("delete family failed")
 	}
 
 	return nil
