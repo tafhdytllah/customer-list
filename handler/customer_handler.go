@@ -9,6 +9,7 @@ import (
 	"github.com/tafhdytllah/customer-list/dto"
 	"github.com/tafhdytllah/customer-list/entity"
 	errorhandler "github.com/tafhdytllah/customer-list/errorHandler"
+	"github.com/tafhdytllah/customer-list/helper"
 	"github.com/tafhdytllah/customer-list/service"
 )
 
@@ -38,8 +39,7 @@ func (h *customerHandler) FindCustomerById(res http.ResponseWriter, req *http.Re
 
 	ID, err := strconv.ParseInt(vars["customer_id"], 10, 32)
 	if err != nil {
-		res.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(res).Encode(errorhandler.ServiceError{
+		errorhandler.HandlerError(res, &errorhandler.BadRequestError{
 			Message: "customer id is invalid",
 		})
 		return
@@ -47,8 +47,7 @@ func (h *customerHandler) FindCustomerById(res http.ResponseWriter, req *http.Re
 
 	customer, err1 := h.service.FindCustomerById(uint(ID))
 	if err1 != nil {
-		res.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(res).Encode(errorhandler.ServiceError{
+		errorhandler.HandlerError(res, &errorhandler.NotFoundError{
 			Message: err1.Error(),
 		})
 		return
@@ -68,17 +67,15 @@ func (h *customerHandler) CreateCustomer(res http.ResponseWriter, req *http.Requ
 
 	err := json.NewDecoder(req.Body).Decode(&customerRequest)
 	if err != nil {
-		res.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(res).Encode(errorhandler.ServiceError{
-			Message: "Error unmarshalling the request",
+		errorhandler.HandlerError(res, &errorhandler.BadRequestError{
+			Message: "request is not valid",
 		})
 		return
 	}
 
 	err1 := h.service.Validation(&customerRequest)
 	if err1 != nil {
-		res.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(res).Encode(errorhandler.ServiceError{
+		errorhandler.HandlerError(res, &errorhandler.BadRequestError{
 			Message: err1.Error(),
 		})
 		return
@@ -86,14 +83,13 @@ func (h *customerHandler) CreateCustomer(res http.ResponseWriter, req *http.Requ
 
 	err2 := h.service.CreateCustomer(&customerRequest)
 	if err2 != nil {
-		res.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(res).Encode(errorhandler.ServiceError{
+		errorhandler.HandlerError(res, &errorhandler.InternalServerError{
 			Message: err2.Error(),
 		})
 		return
 	}
 
-	res.WriteHeader(http.StatusOK)
+	res.WriteHeader(http.StatusCreated)
 	json.NewEncoder(res).Encode(customerRequest)
 }
 
@@ -105,9 +101,8 @@ func (h *customerHandler) UpdateCustomerById(res http.ResponseWriter, req *http.
 
 	err := json.NewDecoder(req.Body).Decode(&customerRequest)
 	if err != nil {
-		res.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(res).Encode(errorhandler.ServiceError{
-			Message: "request body not valid",
+		errorhandler.HandlerError(res, &errorhandler.BadRequestError{
+			Message: "request is not valid",
 		})
 		return
 	}
@@ -116,8 +111,7 @@ func (h *customerHandler) UpdateCustomerById(res http.ResponseWriter, req *http.
 
 	customerID, err := strconv.ParseInt(vars["customer_id"], 10, 32)
 	if err != nil {
-		res.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(res).Encode(errorhandler.ServiceError{
+		errorhandler.HandlerError(res, &errorhandler.BadRequestError{
 			Message: "customer id is invalid",
 		})
 		return
@@ -125,8 +119,7 @@ func (h *customerHandler) UpdateCustomerById(res http.ResponseWriter, req *http.
 
 	err1 := h.service.Validation(&customerRequest)
 	if err1 != nil {
-		res.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(res).Encode(errorhandler.ServiceError{
+		errorhandler.HandlerError(res, &errorhandler.BadRequestError{
 			Message: err1.Error(),
 		})
 		return
@@ -134,8 +127,7 @@ func (h *customerHandler) UpdateCustomerById(res http.ResponseWriter, req *http.
 
 	updatedCustomer, updatedFamily, err2 := h.service.UpdateCustomerById(uint(customerID), &customerRequest)
 	if err2 != nil {
-		res.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(res).Encode(errorhandler.ServiceError{
+		errorhandler.HandlerError(res, &errorhandler.BadRequestError{
 			Message: err2.Error(),
 		})
 		return
@@ -156,8 +148,7 @@ func (h *customerHandler) DeleteFamilyById(res http.ResponseWriter, req *http.Re
 
 	customerID, err := strconv.ParseInt(vars["customer_id"], 10, 32)
 	if err != nil {
-		res.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(res).Encode(errorhandler.ServiceError{
+		errorhandler.HandlerError(res, &errorhandler.BadRequestError{
 			Message: "customer id is invalid",
 		})
 		return
@@ -165,8 +156,7 @@ func (h *customerHandler) DeleteFamilyById(res http.ResponseWriter, req *http.Re
 
 	familyID, err1 := strconv.ParseInt(vars["family_id"], 10, 32)
 	if err1 != nil {
-		res.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(res).Encode(errorhandler.ServiceError{
+		errorhandler.HandlerError(res, &errorhandler.BadRequestError{
 			Message: "family id is invalid",
 		})
 		return
@@ -174,8 +164,7 @@ func (h *customerHandler) DeleteFamilyById(res http.ResponseWriter, req *http.Re
 
 	err2 := h.service.CheckCustomerById(uint(customerID))
 	if err2 != nil {
-		res.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(res).Encode(errorhandler.ServiceError{
+		errorhandler.HandlerError(res, &errorhandler.NotFoundError{
 			Message: err2.Error(),
 		})
 		return
@@ -183,8 +172,7 @@ func (h *customerHandler) DeleteFamilyById(res http.ResponseWriter, req *http.Re
 
 	err3 := h.service.CheckFamilyById(uint(familyID))
 	if err3 != nil {
-		res.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(res).Encode(errorhandler.ServiceError{
+		errorhandler.HandlerError(res, &errorhandler.NotFoundError{
 			Message: err3.Error(),
 		})
 		return
@@ -192,17 +180,18 @@ func (h *customerHandler) DeleteFamilyById(res http.ResponseWriter, req *http.Re
 
 	err4 := h.service.DeleteFamilyByCustomerIdAndFamilyId(uint(customerID), uint(familyID))
 	if err4 != nil {
-		res.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(res).Encode(errorhandler.ServiceError{
+		errorhandler.HandlerError(res, &errorhandler.InternalServerError{
 			Message: err4.Error(),
 		})
 		return
 	}
 
-	res.WriteHeader(http.StatusOK)
-	json.NewEncoder(res).Encode(dto.ResponseSuccess{
+	result := helper.Response(dto.ResponseParams{
 		Message: "Success delete family",
 	})
+
+	res.WriteHeader(http.StatusOK)
+	json.NewEncoder(res).Encode(result)
 }
 
 // CONVERT TO CUSTOMER RESPONSE
