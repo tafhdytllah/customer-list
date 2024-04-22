@@ -17,6 +17,12 @@ type CustomerRepository interface {
 	DeleteFamilyByCustomerId(ID uint) error
 
 	UpdateFamily(family *[]entity.FamilyList) (*[]entity.FamilyList, error)
+
+	CheckCustomerById(ID uint) error
+
+	CheckFamilyById(ID uint) error
+
+	DeleteFamilyByCustomerIdAndFamilyId(customerID uint, familyID uint) error
 }
 
 type customerRepository struct {
@@ -72,4 +78,31 @@ func (r *customerRepository) UpdateFamily(family *[]entity.FamilyList) (*[]entit
 	err := r.db.Save(&family).Error
 
 	return family, err
+}
+
+// CHECK CUSTOMER BY ID
+func (r *customerRepository) CheckCustomerById(ID uint) error {
+	var customer entity.Customer
+
+	err := r.db.First(&customer, ID).Error
+
+	return err
+}
+
+// CHECK FAMILY BY ID
+func (r *customerRepository) CheckFamilyById(ID uint) error {
+	var family entity.FamilyList
+
+	err := r.db.First(&family, ID).Error
+
+	return err
+}
+
+// DELETE FAMILY BY CUSTOMER ID AND FAMILY ID
+func (r *customerRepository) DeleteFamilyByCustomerIdAndFamilyId(customerID uint, familyID uint) error {
+	var family entity.FamilyList
+
+	err := r.db.Where("cst_id = ?", customerID).Where("fl_id = ?", familyID).Delete(&family).Error
+
+	return err
 }

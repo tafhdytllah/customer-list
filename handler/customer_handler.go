@@ -18,6 +18,8 @@ type CustomerHandler interface {
 	CreateCustomer(res http.ResponseWriter, req *http.Request)
 
 	UpdateCustomerById(res http.ResponseWriter, req *http.Request)
+
+	DeleteFamilyById(res http.ResponseWriter, req *http.Request)
 }
 
 type customerHandler struct {
@@ -144,6 +146,63 @@ func (h *customerHandler) UpdateCustomerById(res http.ResponseWriter, req *http.
 	res.WriteHeader(http.StatusOK)
 	json.NewEncoder(res).Encode(result)
 
+}
+
+// DELETE FAMILY BY ID
+func (h *customerHandler) DeleteFamilyById(res http.ResponseWriter, req *http.Request) {
+	res.Header().Set("Content-type", "application/json")
+
+	vars := mux.Vars(req)
+
+	customerID, err := strconv.ParseInt(vars["customer_id"], 10, 32)
+	if err != nil {
+		res.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(res).Encode(errorhandler.ServiceError{
+			Message: "customer id is invalid",
+		})
+		return
+	}
+
+	familyID, err1 := strconv.ParseInt(vars["family_id"], 10, 32)
+	if err1 != nil {
+		res.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(res).Encode(errorhandler.ServiceError{
+			Message: "family id is invalid",
+		})
+		return
+	}
+
+	err2 := h.service.CheckCustomerById(uint(customerID))
+	if err2 != nil {
+		res.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(res).Encode(errorhandler.ServiceError{
+			Message: err2.Error(),
+		})
+		return
+	}
+
+	err3 := h.service.CheckFamilyById(uint(familyID))
+	if err3 != nil {
+		res.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(res).Encode(errorhandler.ServiceError{
+			Message: err3.Error(),
+		})
+		return
+	}
+
+	err4 := h.service.DeleteFamilyByCustomerIdAndFamilyId(uint(customerID), uint(familyID))
+	if err4 != nil {
+		res.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(res).Encode(errorhandler.ServiceError{
+			Message: err4.Error(),
+		})
+		return
+	}
+
+	res.WriteHeader(http.StatusOK)
+	json.NewEncoder(res).Encode(dto.ResponseSuccess{
+		Message: "Success delete family",
+	})
 }
 
 // CONVERT TO CUSTOMER RESPONSE

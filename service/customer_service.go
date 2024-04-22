@@ -18,6 +18,12 @@ type CustomerService interface {
 	CreateCustomer(request *dto.CustomerRequest) error
 
 	UpdateCustomerById(customerID uint, request *dto.CustomerRequest) (*entity.Customer, *[]entity.FamilyList, error)
+
+	CheckCustomerById(ID uint) error
+
+	CheckFamilyById(ID uint) error
+
+	DeleteFamilyByCustomerIdAndFamilyId(customerID uint, familyID uint) error
 }
 
 type customerService struct {
@@ -126,6 +132,36 @@ func (s *customerService) UpdateCustomerById(customerID uint, request *dto.Custo
 	}
 
 	return updatedCustomer, updatedFamily, nil
+}
+
+// CHECK CUSTOMER BY ID
+func (s *customerService) CheckCustomerById(ID uint) error {
+	err := s.repository.CheckCustomerById(ID)
+	if err != nil {
+		return errors.New("customer not found")
+	}
+
+	return nil
+}
+
+// CHECK FAMILY BY ID
+func (s *customerService) CheckFamilyById(ID uint) error {
+	err := s.repository.CheckFamilyById(ID)
+	if err != nil {
+		return errors.New("family not found")
+	}
+
+	return nil
+}
+
+// DELETE FAMILY BY CUSTOMER ID AND FAMILY ID
+func (s *customerService) DeleteFamilyByCustomerIdAndFamilyId(customerID uint, familyID uint) error {
+	err := s.repository.DeleteFamilyByCustomerIdAndFamilyId(customerID, familyID)
+	if err != nil {
+		return errors.New("delete family failed")
+	}
+
+	return nil
 }
 
 // REQUEST BODY VALIDATION
