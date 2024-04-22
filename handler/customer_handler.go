@@ -40,7 +40,7 @@ func (h *customerHandler) FindCustomerById(res http.ResponseWriter, req *http.Re
 	if err != nil {
 		res.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(res).Encode(errorhandler.ServiceError{
-			Message: err.Error(),
+			Message: "customer id is invalid",
 		})
 		return
 	}
@@ -54,7 +54,7 @@ func (h *customerHandler) FindCustomerById(res http.ResponseWriter, req *http.Re
 		return
 	}
 
-	result := convertToCustomerResponse(customer, customer.FamilyList)
+	result := convertToCustomerResponse(customer, &customer.FamilyList)
 
 	res.WriteHeader(http.StatusOK)
 	json.NewEncoder(res).Encode(result)
@@ -107,7 +107,7 @@ func (h *customerHandler) UpdateCustomerById(res http.ResponseWriter, req *http.
 	if err != nil {
 		res.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(res).Encode(errorhandler.ServiceError{
-			Message: "Error unmarshalling the request",
+			Message: "request body not valid",
 		})
 		return
 	}
@@ -118,7 +118,7 @@ func (h *customerHandler) UpdateCustomerById(res http.ResponseWriter, req *http.
 	if err != nil {
 		res.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(res).Encode(errorhandler.ServiceError{
-			Message: "id is invalid",
+			Message: "customer id is invalid",
 		})
 		return
 	}
@@ -134,14 +134,14 @@ func (h *customerHandler) UpdateCustomerById(res http.ResponseWriter, req *http.
 
 	updatedCustomer, updatedFamily, err2 := h.service.UpdateCustomerById(uint(customerID), &customerRequest)
 	if err2 != nil {
-		res.WriteHeader(http.StatusInternalServerError)
+		res.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(res).Encode(errorhandler.ServiceError{
 			Message: err2.Error(),
 		})
 		return
 	}
 
-	result := convertToCustomerResponse(*updatedCustomer, *updatedFamily)
+	result := convertToCustomerResponse(updatedCustomer, updatedFamily)
 
 	res.WriteHeader(http.StatusOK)
 	json.NewEncoder(res).Encode(result)
@@ -206,9 +206,9 @@ func (h *customerHandler) DeleteFamilyById(res http.ResponseWriter, req *http.Re
 }
 
 // CONVERT TO CUSTOMER RESPONSE
-func convertToCustomerResponse(customer entity.Customer, fam []entity.FamilyList) dto.CustomerResponse {
-	familyList := make([]dto.FamilyList, len(fam))
-	for i, family := range fam {
+func convertToCustomerResponse(customer *entity.Customer, fam *[]entity.FamilyList) dto.CustomerResponse {
+	familyList := make([]dto.FamilyList, len(*fam))
+	for i, family := range *fam {
 		familyList[i] = dto.FamilyList{
 			Relation: family.Relation,
 			Name:     family.Name,

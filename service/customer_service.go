@@ -1,17 +1,17 @@
 package service
 
 import (
-	"errors"
 	"strings"
 
 	"github.com/tafhdytllah/customer-list/dto"
 	"github.com/tafhdytllah/customer-list/entity"
+	errorhandler "github.com/tafhdytllah/customer-list/errorHandler"
 	"github.com/tafhdytllah/customer-list/repository"
 	"gorm.io/gorm"
 )
 
 type CustomerService interface {
-	FindCustomerById(ID uint) (entity.Customer, error)
+	FindCustomerById(ID uint) (*entity.Customer, error)
 
 	Validation(request *dto.CustomerRequest) error
 
@@ -35,15 +35,14 @@ func NewCustomerService(r repository.CustomerRepository) *customerService {
 }
 
 // FIND CUSTOMER BY ID
-func (s *customerService) FindCustomerById(ID uint) (entity.Customer, error) {
+func (s *customerService) FindCustomerById(ID uint) (*entity.Customer, error) {
 	customer, err := s.repository.FindCustomerById(ID)
-
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return entity.Customer{}, errors.New("article not found")
+			return nil, &errorhandler.NotFoundError{Message: "article not found"}
 		}
 
-		return entity.Customer{}, errors.New(err.Error())
+		return nil, &errorhandler.InternalServerError{Message: err.Error()}
 	}
 
 	return customer, nil
@@ -61,7 +60,7 @@ func (s *customerService) CreateCustomer(request *dto.CustomerRequest) error {
 
 	idCustomer, err := s.repository.CreateCustomer(&customer)
 	if err != nil {
-		return errors.New("create customer failed")
+		return &errorhandler.InternalServerError{Message: err.Error()}
 	}
 
 	var familyList []entity.FamilyList
@@ -76,7 +75,7 @@ func (s *customerService) CreateCustomer(request *dto.CustomerRequest) error {
 	}
 
 	if err1 := s.repository.CreateFamilyList(&familyList); err1 != nil {
-		return errors.New("create family failed")
+		return &errorhandler.InternalServerError{Message: err1.Error()}
 	}
 
 	return nil
@@ -88,10 +87,10 @@ func (s *customerService) UpdateCustomerById(customerID uint, request *dto.Custo
 	customer, err := s.repository.FindCustomerById(customerID)
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
-			return &entity.Customer{}, &[]entity.FamilyList{}, errors.New("customer not found")
+			return nil, nil, &errorhandler.NotFoundError{Message: "customer not found"}
 		}
 
-		return &entity.Customer{}, &[]entity.FamilyList{}, errors.New(err.Error())
+		return nil, nil, &errorhandler.InternalServerError{Message: err.Error()}
 	}
 
 	newName := strings.TrimSpace(request.Name)
@@ -116,19 +115,18 @@ func (s *customerService) UpdateCustomerById(customerID uint, request *dto.Custo
 		})
 	}
 
-	updatedCustomer, err1 := s.repository.UpdateCustomer(&customer)
+	updatedCustomer, err1 := s.repository.UpdateCustomer(customer)
 	if err1 != nil {
-		return &entity.Customer{}, &[]entity.FamilyList{}, errors.New("update customer failed")
+		return nil, nil, &errorhandler.InternalServerError{Message: err1.Error()}
 	}
 
-	err2 := s.repository.DeleteFamilyByCustomerId(customerID)
-	if err2 != nil {
-		return &entity.Customer{}, &[]entity.FamilyList{}, errors.New("family not found")
+	if err2 := s.repository.DeleteFamilyByCustomerId(customerID); err2 != nil {
+		return nil, nil, &errorhandler.InternalServerError{Message: err2.Error()}
 	}
 
 	updatedFamily, err3 := s.repository.UpdateFamily(&familyList)
 	if err3 != nil {
-		return &entity.Customer{}, &[]entity.FamilyList{}, errors.New("update family failed")
+		return nil, nil, &errorhandler.InternalServerError{Message: err3.Error()}
 	}
 
 	return updatedCustomer, updatedFamily, nil
@@ -136,9 +134,12 @@ func (s *customerService) UpdateCustomerById(customerID uint, request *dto.Custo
 
 // CHECK CUSTOMER BY ID
 func (s *customerService) CheckCustomerById(ID uint) error {
-	err := s.repository.CheckCustomerById(ID)
-	if err != nil {
-		return errors.New("customer not found")
+	if err := s.repository.CheckCustomerById(ID); err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return &errorhandler.NotFoundError{Message: "customer not found"}
+		}
+
+		return &errorhandler.InternalServerError{Message: err.Error()}
 	}
 
 	return nil
@@ -146,9 +147,12 @@ func (s *customerService) CheckCustomerById(ID uint) error {
 
 // CHECK FAMILY BY ID
 func (s *customerService) CheckFamilyById(ID uint) error {
-	err := s.repository.CheckFamilyById(ID)
-	if err != nil {
-		return errors.New("family not found")
+	if err := s.repository.CheckFamilyById(ID); err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return &errorhandler.NotFoundError{Message: "family not found"}
+		}
+
+		return &errorhandler.InternalServerError{Message: err.Error()}
 	}
 
 	return nil
@@ -156,9 +160,8 @@ func (s *customerService) CheckFamilyById(ID uint) error {
 
 // DELETE FAMILY BY CUSTOMER ID AND FAMILY ID
 func (s *customerService) DeleteFamilyByCustomerIdAndFamilyId(customerID uint, familyID uint) error {
-	err := s.repository.DeleteFamilyByCustomerIdAndFamilyId(customerID, familyID)
-	if err != nil {
-		return errors.New("delete family failed")
+	if err := s.repository.DeleteFamilyByCustomerIdAndFamilyId(customerID, familyID); err != nil {
+		return &errorhandler.InternalServerError{Message: err.Error()}
 	}
 
 	return nil
@@ -167,28 +170,22 @@ func (s *customerService) DeleteFamilyByCustomerIdAndFamilyId(customerID uint, f
 // REQUEST BODY VALIDATION
 func (s *customerService) Validation(request *dto.CustomerRequest) error {
 	if request == nil {
-		err1 := errors.New("request body is required")
-		return err1
+		return &errorhandler.BadRequestError{Message: "request body is required"}
 	}
 	if request.Name == "" {
-		err2 := errors.New("nama is required")
-		return err2
+		return &errorhandler.BadRequestError{Message: "nama is required"}
 	}
 	if request.Dob == "" {
-		err3 := errors.New("tanggal lahir is required")
-		return err3
+		return &errorhandler.BadRequestError{Message: "tanggal lahir is required"}
 	}
 	if request.NationalityID == 0 {
-		err4 := errors.New("kewarganegaraan is required")
-		return err4
+		return &errorhandler.BadRequestError{Message: "kewarganegaraan is required"}
 	}
 	if request.Phone == "" {
-		err5 := errors.New("telepon is required")
-		return err5
+		return &errorhandler.BadRequestError{Message: "telepon is required"}
 	}
 	if request.Email == "" {
-		err6 := errors.New("email is required")
-		return err6
+		return &errorhandler.BadRequestError{Message: "email is required"}
 	}
 	return nil
 }

@@ -6,7 +6,7 @@ import (
 )
 
 type CustomerRepository interface {
-	FindCustomerById(ID uint) (entity.Customer, error)
+	FindCustomerById(ID uint) (*entity.Customer, error)
 
 	CreateCustomer(customer *entity.Customer) (uint, error)
 
@@ -34,12 +34,12 @@ func NewCustomerRepository(db *gorm.DB) *customerRepository {
 }
 
 // FIND CUSTOMER BY ID
-func (r *customerRepository) FindCustomerById(ID uint) (entity.Customer, error) {
+func (r *customerRepository) FindCustomerById(ID uint) (*entity.Customer, error) {
 	var customer entity.Customer
 
 	err := r.db.Preload("FamilyList").Preload("Nationality").Where("customer.cst_id = ?", ID).First(&customer).Error
 
-	return customer, err
+	return &customer, err
 }
 
 // CREATE CUSTOMER
