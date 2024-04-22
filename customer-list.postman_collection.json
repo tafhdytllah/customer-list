@@ -1,0 +1,123 @@
+{
+	"info": {
+		"_postman_id": "77f55438-30dc-4bd5-a4d1-241b72370314",
+		"name": "customer-list",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "10622912"
+	},
+	"item": [
+		{
+			"name": "Get Customer",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8080/api/v1/customers/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"customers",
+						"1"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create Customer",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"nama\": \"Jingga\",\r\n    \"tanggal_lahir\": \"2021-01-10\",\r\n    \"kewarganegaraan\": 3,\r\n    \"telepon\": \"628101000001\",\r\n    \"email\": \"jingga@gmail.com\",\r\n    \"keluarga\": [\r\n        {\r\n            \"hubungan\": \"ibu\",\r\n            \"nama\": \"yumi\",\r\n            \"tanggal_lahir\": \"2003-07-01\"\r\n        }\r\n    ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/v1/customers/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"customers",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update Customer",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"nama\": \"Kuning\",\r\n    \"tanggal_lahir\": \"2021-12-12\",\r\n    \"kewarganegaraan\": 2,\r\n    \"telepon\": \"6280002222\",\r\n    \"email\": \"Kuning@gmail.com\",\r\n    \"keluarga\": [\r\n        {\r\n            \"hubungan\": \"paman\",\r\n            \"nama\": \"sulong\",\r\n            \"tanggal_lahir\": \"2000-08-17\"\r\n        },\r\n        {\r\n            \"hubungan\": \"bibi\",\r\n            \"nama\": \"nami\",\r\n            \"tanggal_lahir\": \"1997-05-20\"\r\n        }\r\n    ]\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/v1/customers/4",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"customers",
+						"4"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete Family By Id",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/v1/customers/20/1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"v1",
+						"customers",
+						"20",
+						"1"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
